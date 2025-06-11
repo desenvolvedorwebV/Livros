@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>História com Accordion</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      user-select: none;
+      -webkit-user-select: none; /* Safari */
+      -ms-user-select: none;     /* IE10+ */
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background: #222;
+      color: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      font-size: 1.2em;
+    }
+
+    .header-left {
+      font-weight: bold;
+    }
+
+    .header-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+    }
+
+    .theme-options {
+      display: flex;
+      gap: 10px;
+      font-size: 0.9em;
+      align-items: center;
+      vertical-align: middle;
+    }
+
+    .font-slider {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: #f0f0f0;
+      border-radius: 5px;
+      font-size: 0.9em;
+      padding: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      width:140px;
+    }
+
+    #fontRange {
+      width: 90%;
+    }
+
+    .accordion {
+      width: 100%;
+    }
+
+    .accordion-item {
+      border-bottom: 1px solid #ccc;
+    }
+
+    .accordion-header {
+      background: #eee;
+      cursor: pointer;
+      padding: 15px;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 72px;
+      z-index: 999;
+    }
+
+    .accordion-content {
+      display: none;
+      padding: 15px;
+    }
+
+    .accordion-content p {
+      text-align: justify;
+    }
+
+    /* Estilos do Player - Base */
+    .audio-player {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 15px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 1002;
+      gap: 10px;
+      transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+      background: #282828; /* Cor de fundo mais neutra para todos os temas */
+      color: white;
+      border-top: 1px solid #444;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    #audioTitle {
+      font-size: 1em;
+      margin-bottom: 8px;
+      color: #a0a0a0;
+      text-align: center;
+    }
+
+    /* Esconde o controle de áudio nativo para estilizar o player */
+    .audio-player audio {
+      display: none;
+    }
+
+    /* Controles de navegação (botões) */
+    .player-controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 25px;
+      margin-top: 5px;
+    }
+
+    .player-controls button {
+      background: none;
+      border: none;
+      font-size: 1.8em;
+      cursor: pointer;
+      color: #fff;
+      padding: 5px 10px;
+      border-radius: 5px;
+      transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+    }
+
+    .player-controls button:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffcc00;
+      transform: translateY(-2px);
+    }
+
+    .player-controls button:active {
+      transform: translateY(0);
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* O novo círculo central para Play/Pause */
+    .play-pause-circle {
+      width: 60px;
+      height: 60px;
+      background: #007bff; /* Cor azul padrão, pode ser ajustada por tema */
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+      font-size: 2em;
+      color: white;
+    }
+
+    .play-pause-circle:hover {
+      background: #0056b3;
+      transform: translateY(-2px);
+    }
+
+    .play-pause-circle:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Estilos para o ícone de Play (triângulo) e Pause (duas barras) */
+    .play-pause-circle.playing .icon-play {
+      display: none;
+    }
+
+    .play-pause-circle:not(.playing) .icon-pause {
+      display: none;
+    }
+
+    /* Tema Claro - Geral */
+    body.theme-light {
+      background: #fff;
+      color: #000;
+    }
+    body.theme-light .accordion-content {
+      background: #f9f9f9;
+      color: #000;
+    }
+    body.theme-light .accordion-header {
+      background: #eee;
+    }
+    body.theme-light .font-slider {
+      background: #f0f0f0;
+    }
+
+    /* Tema Claro - Player Específico */
+    body.theme-light .audio-player {
+      background: #f0f0f0;
+      color: #333;
+      border-top-color: #ccc;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    }
+    body.theme-light #audioTitle {
+      color: #555;
+    }
+    body.theme-light .player-controls button {
+      color: #333;
+    }
+    body.theme-light .player-controls button:hover {
+      background: rgba(0, 0, 0, 0.05);
+      color: #007bff;
+    }
+    body.theme-light .player-controls button:active {
+      background: rgba(0, 0, 0, 0.1);
+    }
+    body.theme-light .play-pause-circle {
+      background: #007bff; /* Cor azul para o tema claro */
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+    body.theme-light .play-pause-circle:hover {
+      background: #0056b3;
+    }
+
+    /* Tema Escuro - Geral */
+    body.theme-dark {
+      background: #121212;
+      color: #eee;
+    }
+    body.theme-dark .accordion-content {
+      background: #282828;
+      color: #eee;
+    }
+    body.theme-dark .accordion-header {
+      background: #333;
+      color: #eee;
+    }
+    body.theme-dark .font-slider {
+      background: #333;
+      color: #eee;
+    }
+    /* Não há estilos específicos para o player no tema escuro que difiram da base */
+
+    /* Tema Pastel - Geral */
+    body.theme-pastel {
+      background: #fff9e6;
+      color: #443c27;
+    }
+    body.theme-pastel .accordion-content {
+      background: #fdf6e6;
+      color: #443c27;
+    }
+    body.theme-pastel .accordion-header {
+      background: #e1d8b8;
+      color: #443c27;
+    }
+    body.theme-pastel .font-slider {
+      background: #f4ecd6;
+      color: #443c27;
+    }
+
+    /* Tema Pastel - Player Específico */
+    body.theme-pastel .audio-player {
+      background: #e1d8b8;
+      color: #443c27;
+      border-top-color: #c4b998;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.15);
+    }
+    body.theme-pastel #audioTitle {
+      color: #6d634d;
+    }
+    body.theme-pastel .player-controls button {
+      color: #443c27;
+    }
+    body.theme-pastel .player-controls button:hover {
+      background: rgba(0, 0, 0, 0.05);
+      color: #a08c5c;
+    }
+    body.theme-pastel .player-controls button:active {
+      background: rgba(0, 0, 0, 0.1);
+    }
+    body.theme-pastel .play-pause-circle {
+      background: #a08c5c; /* Cor pastel para o tema pastel */
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    body.theme-pastel .play-pause-circle:hover {
+      background: #8e7b4e;
+    }
+    .icon-play {
+      position: relative;
+      top: -2px;
+      right: -2px;
+    }
+  </style>
+</head>
+<body class="theme-light">
+  <header>
+    <div class="header-left">
+      O Café Que Serve Estrelas
+    </div>
+    <div class="header-right">
+      <div class="theme-options">
+        <label><input type="radio" name="theme" value="light" checked>☀️</label>
+        <label><input type="radio" name="theme" value="dark">🌙</label>
+        <label><input type="radio" name="theme" value="pastel">📜</label>
+      </div>
+      <div class="font-slider">
+        <input type="range" min="10" max="20" value="10" id="fontRange">
+      </div>
+    </div>
+  </header>
+
+  <div class="accordion">
+    <div class="accordion-item" data-tracks='["audio/cap2-1.mp3", "audio/cap2-2.mp3"]'>
+      <div class="accordion-header">
+        <span>Capa</span>
+        <button class="playlist-toggle">🎵 Playlist</button>
+      </div>
+      <div class="accordion-content">
+        <img src="images/Capa.png" width="100%">
+      </div>
+    </div>  
+    
+  
+    <div class="accordion-item" data-tracks='["audio/cap1-1.mp3", "audio/cap1-2.mp3"]'>
+      <div class="accordion-header">
+        <span>Sinopse</span>
+        <button class="playlist-toggle">🎵 Playlist</button>
+      </div>
+      <div class="accordion-content">
+          <p>Após uma década lecionando Geografia, Celine decide abandonar o magistério ao enfrentar um episódio de assédio ocorrido na escola onde trabalhava. Ferida, mas determinada a recomeçar, retorna ao interior para morar na antiga propriedade da família. Lá, reencontra a mãe e descobre que seu primo Cadu — quase como um irmão mais novo — também está morando com sua progenitora.</p>
+          <p>Nas lembranças da infância, Cadu sempre foi seu confidente e protetor, inclusive ao tentar "selecionar" pretendentes para ela. Agora, mais maduros, resta saber se esta mania continuará... e se, desta vez, apresentará alguém que realmente valha a pena.</p>
+          <p>Enquanto se adapta à nova rotina e almeja resgatar sua identidade longe das dores da cidade grande, Celine se vê intrigada por um lugar do qual todos falam com carinho e mistério: o <b><i>Café Que Serve Estrelas</i></b>. Por que sua mãe e Cadu insistem tanto para que ela o conheça? E que papel esse Café pode ter no rumo de sua nova vida?</p>
+          <img src="images/ilustracaoSinopse.png" width="100%">
+      </div>
+    </div>
+
+    <div class="accordion-item" data-tracks='["audio/cap2-1.mp3", "audio/cap2-2.mp3"]'>
+      <div class="accordion-header">
+        <span>Prólogo</span>
+        <button class="playlist-toggle">🎵 Playlist</button>
+      </div>
+      <div class="accordion-content">
+        <p>— Tem certeza? Vai abrir mão de tudo o que você conquistou até agora? — questionou Romero, diretor da Escola Publis, encarando sua melhor profissional em busca de respostas. A abordagem, no entanto, foi dura demais — injusta na realidade.</p>
+        <p>— O senhor sabe que conivência é crime, não sabe? — retrucou, com raiva contida, trazendo à tona o caso envolvendo o vice-diretor. Não tinha intenções de denunciá-lo, mas também não pretendia abrir mão de seus direitos. Queria ser demitida e não se demitir.</p>
+        <p>— Sabe disso, né? — os dedos de Celine repousaram sobre a mesa, à frente do velho educador. Apesar da postura equivocada, Romero não era má pessoa — tampouco compactuava com o ato do colega, contra quem já havia encaminhado uma sindicância.</p>
+        <p>— Enviarei todos os documentos do seu desligamento pelo correio, chegarão lá antes de ti. Use o tempo do aviso prévio para resolver sua vida. Torço para que continuemos amigos. — a voz pesarosa, repleta de sinceridade, ecoou no ar. A mão estendida, esperava um aperto não ocorrido.</p>
+        <p>— Sim! Obrigada. — os olhos marejados dançavam e estavam atrás de encontrar conforto ao observar rapidamente o ambiente. A estante repleta de livros e o Globo Terrestre luminoso adornavam a sala arejada, mas algo parecia fora de lugar.</p>
+        <p>Uma grande caixa.</p>
+        <p>— O que é isso? — a pergunta veio de forma natural e, por breve momento, a professora esqueceu que não fazia mais parte de lá, a próprio pedido. — Desculpe. Não precisa falar.</p>
+        <p>— Aah...? Isso? É um telescópio. Comprei para meu neto, mas ele não quer saber de nada além do seu smartphone. Crianças, né, são assim nos dias atuais... TikTok, essas coisas. — soltando uma risada rouca e resignada, a ideia veio instantânea.</p>
+        <p>— Fique com ele. Não precisarei mais. — fez uma breve pausa, seguida de um sorriso e então completou:</p>
+        <p>— Com o telescópio. Deixe Theo, senão a mãe dele me mata.</p>
+        <p>Celine riu baixinho e aceitou.</p>
+        <p>Não o aperto de mão do ex-chefe e também nem mesmo a criança tecnologicamente viciada, mas sim o equipamento. Ela duvidara ter alguma utilidade para aquilo, porém sabia de seu valor financeiro.</p>
+        <p>Ajeitando os papéis na mesa como se procurasse algo a mais para falar, observou o olhar brilhante da ex-funcionária para depois irromper o silêncio com uma frase casual:</p>
+        <p>— Posso chamar um táxi pra você. Tem uma moça que o ponto dela é aqui perto da escola. Pessoa de confiança. Vai te ajudar com o transporte e ainda conta umas histórias muito boas no percurso.</p>
+        <p>— Uma vez me levou para um congresso e o carro enguiçou no meio da estrada. Então tivemos que empurrar, mas agora está com o carro novinho, eu garanto... — sorrindo, para aliviar o clima.</p>
+        <p>Um pouco mais leve, mas balançando a cabeça, ela interrompeu outra falação que se iniciaria:</p>
+        <p>— Obrigada, professor, mas não se incomode. Chamarei um Uber, é coisa rápida.</p>
+        <p>Romero assentiu, com um sorriso murcho. As íris no chão, que antes demonstravam tentativa de leveza, agora se perderam na mobília da sala, distantes. A quietude novamente instaurada, tornou tudo mais estranho. Ele pareceu menor, cabisbaixo. Cansado.</p>
+        <p><i>Celine percebeu.</i></p>
+        <p>Se afastando da caixa, aproximou-se do velho homem e ao invés de lhe estender a mão, envolveu-o num abraço simples. Sem palavras e cerimônias.</p>
+        <p>— Obrigada por tudo — disse, firme ao se afastar. — Por confiar em mim. Por me deixar crescer aqui dentro, mesmo quando era difícil.</p>
+        <p>Romero nada externou, só assentiu com um movimento desajeitado e quase imperceptível.</p>
+        <p>Celine ergueu a caixa com dificuldade. Aquilo era mais pesado do que ela imaginara. Saindo em passos lentos, atravessou o corredor prendendo a respiração, não pelo esforço, mas por tentar conter as emoções. A cada passo, sentia o peso não só do objeto nas mãos, mas do adeus.</p>
+        <p>Ao alcançar a frente da escola, parou. Virou-se e contemplou o prédio antigo pela última vez. A fachada simples, o portão de ferro baixo e enferrujado, o pequeno jardim malcuidado... tudo parecia guardar lembranças.</p>
+        <p>De frente para aquele mundo que havia sido sua casa por tanto tempo, ela chorou. Em silêncio e de forma contida. As lágrimas não pediram permissão. Simplesmente caíram.</p>
+        <p>Pegando o celular, respirou fundo e abriu o aplicativo de transporte.</p>
+        <p>Enquanto isso, o diretor permaneceu sozinho em sua sala.</p>
+        <p>Sentando-se lentamente em sua cadeira, como quem perdeu alguém importante e não soube demonstrar, fitou a porta recém-fechada.</p>
+        <p>Passando as palmas na própria face, em procura de controlar os sentimentos, — sem mesmo notar — seu rosto se umedeceu com o que escorreu.</p>
+        <p>Não por derrota.</p>
+        <p>Mas por saudade antes mesmo dela ter tempo de existir.</p>
+      </div>
+    </div>
+    
+    <div class="accordion-item" data-tracks='["audio/cap2-1.mp3", "audio/cap2-2.mp3"]'>
+      <div class="accordion-header">
+        <span>Capítulo 1: Casa</span>
+        <button class="playlist-toggle">🎵 Playlist</button>
+      </div>
+      <div class="accordion-content">
+        <p>Este é o conteúdo do capítulo 1. O texto segue a mesma formatação do capítulo anterior e também será ajustado com o controle de fonte.</p>
+        <p>Mais um parágrafo para visualização da funcionalidade de layout e áudio.</p>
+      </div>
+    </div>
+    
+    <div class="accordion-item" data-tracks='["audio/cap2-1.mp3", "audio/cap2-2.mp3"]'>
+      <div class="accordion-header">
+        <span>Capítulo 2: Passado Presente</span>
+        <button class="playlist-toggle">🎵 Playlist</button>
+      </div>
+      <div class="accordion-content">
+        <p>Este é o conteúdo do capítulo 2. O texto segue a mesma formatação do capítulo anterior e também será ajustado com o controle de fonte.</p>
+        <p>Mais um parágrafo para visualização da funcionalidade de layout e áudio.</p>
+      </div>
+    </div>
+    
+    <div class="accordion-item" data-tracks='["audio/cap2-1.mp3", "audio/cap2-2.mp3"]'>
+      <div class="accordion-header">
+        <span>Capítulo 3: Sem Título Definido</span>
+        <button class="playlist-toggle">🎵 Playlist</button>
+      </div>
+      <div class="accordion-content">
+        <p>Este é o conteúdo do capítulo 3. O texto segue a mesma formatação do capítulo anterior e também será ajustado com o controle de fonte.</p>
+        <p>Mais um parágrafo para visualização da funcionalidade de layout e áudio.</p>
+      </div>
+    </div>
+    
+    <div class="accordion-item" data-tracks='["audio/cap2-1.mp3", "audio/cap2-2.mp3"]'>
+      <div class="accordion-header">
+        <span>Capítulo 4: Sem Título Definido</span>
+        <button class="playlist-toggle">🎵 Playlist</button>
+      </div>
+      <div class="accordion-content">
+        <p>Este é o conteúdo do capítulo 4. O texto segue a mesma formatação do capítulo anterior e também será ajustado com o controle de fonte.</p>
+        <p>Mais um parágrafo para visualização da funcionalidade de layout e áudio.</p>
+      </div>
+    </div>
+    
+    <div class="accordion-item" data-tracks='["audio/cap2-1.mp3", "audio/cap2-2.mp3"]'>
+      <div class="accordion-header">
+        <span>Capítulo 5: Sem Título Definido</span>
+        <button class="playlist-toggle">🎵 Playlist</button>
+      </div>
+      <div class="accordion-content">
+        <p>Este é o conteúdo do capítulo 5. O texto segue a mesma formatação do capítulo anterior e também será ajustado com o controle de fonte.</p>
+        <p>Mais um parágrafo para visualização da funcionalidade de layout e áudio.</p>
+      </div>
+    </div>
+    
+    <div class="accordion-item" data-tracks='["audio/cap2-1.mp3", "audio/cap2-2.mp3"]'>
+      <div class="accordion-header">
+        <span>Capítulo 6: Sem Título Definido</span>
+        <button class="playlist-toggle">🎵 Playlist</button>
+      </div>
+      <div class="accordion-content">
+        <p>Este é o conteúdo do capítulo 6. O texto segue a mesma formatação do capítulo anterior e também será ajustado com o controle de fonte.</p>
+        <p>Mais um parágrafo para visualização da funcionalidade de layout e áudio.</p>
+      </div>
+    </div>
+    
+    <div class="accordion-item" data-tracks='["audio/cap2-1.mp3", "audio/cap2-2.mp3"]'>
+      <div class="accordion-header">
+        <span>Capítulo 7: Sem Título Definido</span>
+        <button class="playlist-toggle">🎵 Playlist</button>
+      </div>
+      <div class="accordion-content">
+        <p>Este é o conteúdo do capítulo 7. O texto segue a mesma formatação do capítulo anterior e também será ajustado com o controle de fonte.</p>
+        <p>Mais um parágrafo para visualização da funcionalidade de layout e áudio.</p>
+      </div>
+    </div>  
+    <div class="accordion-item" data-tracks='["audio/cap2-1.mp3", "audio/cap2-2.mp3"]'>
+      <div class="accordion-header">
+        <span>Capítulo 8: Sem Título Definido</span>
+        <button class="playlist-toggle">🎵 Playlist</button>
+      </div>
+      <div class="accordion-content">
+        <p>Este é o conteúdo do capítulo 8. O texto segue a mesma formatação do capítulo anterior e também será ajustado com o controle de fonte.</p>
+        <p>Mais um parágrafo para visualização da funcionalidade de layout e áudio.</p>
+      </div>
+    </div>  
+    <div class="accordion-item" data-tracks='["audio/cap2-1.mp3", "audio/cap2-2.mp3"]'>
+      <div class="accordion-header">
+        <span>Capítulo 9: Sem Título Definido</span>
+        <button class="playlist-toggle">🎵 Playlist</button>
+      </div>
+      <div class="accordion-content">
+        <p>Este é o conteúdo do capítulo 9. O texto segue a mesma formatação do capítulo anterior e também será ajustado com o controle de fonte.</p>
+        <p>Mais um parágrafo para visualização da funcionalidade de layout e áudio.</p>
+      </div>
+    </div>  
+    <div class="accordion-item" data-tracks='["audio/cap2-1.mp3", "audio/cap2-2.mp3"]'>
+      <div class="accordion-header">
+        <span>Capítulo 10: Sem Título Definido</span>
+        <button class="playlist-toggle">🎵 Playlist</button>
+      </div>
+      <div class="accordion-content">
+        <p>Este é o conteúdo do capítulo 10. O texto segue a mesma formatação do capítulo anterior e também será ajustado com o controle de fonte.</p>
+        <p>Mais um parágrafo para visualização da funcionalidade de layout e áudio.</p>
+      </div>
+    </div>  
+    <div class="accordion-item" data-tracks='["audio/cap2-1.mp3", "audio/cap2-2.mp3"]'>
+      <div class="accordion-header">
+        <span>Capítulo 11: Sem Título Definido</span>
+        <button class="playlist-toggle">🎵 Playlist</button>
+      </div>
+      <div class="accordion-content">
+        <p>Este é o conteúdo do capítulo 11. O texto segue a mesma formatação do capítulo anterior e também será ajustado com o controle de fonte.</p>
+        <p>Mais um parágrafo para visualização da funcionalidade de layout e áudio.</p>
+      </div>
+    </div>  
+    <div class="accordion-item" data-tracks='["audio/cap2-1.mp3", "audio/cap2-2.mp3"]'>
+      <div class="accordion-header">
+        <span>Capítulo 12: Sem Título Definido</span>
+        <button class="playlist-toggle">🎵 Playlist</button>
+      </div>
+      <div class="accordion-content">
+        <p>Este é o conteúdo do capítulo 12. O texto segue a mesma formatação do capítulo anterior e também será ajustado com o controle de fonte.</p>
+        <p>Mais um parágrafo para visualização da funcionalidade de layout e áudio.</p>
+      </div>
+    </div>  
+    <div class="accordion-item" data-tracks='["audio/cap2-1.mp3", "audio/cap2-2.mp3"]'>
+      <div class="accordion-header">
+        <span>Capítulo 13: Sem Título Definido</span>
+        <button class="playlist-toggle">🎵 Playlist</button>
+      </div>
+      <div class="accordion-content">
+        <p>Este é o conteúdo do capítulo 13. O texto segue a mesma formatação do capítulo anterior e também será ajustado com o controle de fonte.</p>
+        <p>Mais um parágrafo para visualização da funcionalidade de layout e áudio.</p>
+      </div>
+    </div>  
+    <div class="accordion-item" data-tracks='["audio/cap2-1.mp3", "audio/cap2-2.mp3"]'>
+      <div class="accordion-header">
+        <span>Capítulo 14: Sem Título Definido</span>
+        <button class="playlist-toggle">🎵 Playlist</button>
+      </div>
+      <div class="accordion-content">
+        <p>Este é o conteúdo do capítulo 14. O texto segue a mesma formatação do capítulo anterior e também será ajustado com o controle de fonte.</p>
+        <p>Mais um parágrafo para visualização da funcionalidade de layout e áudio.</p>
+      </div>
+    </div>  
+    <div class="accordion-item" data-tracks='["audio/cap2-1.mp3", "audio/cap2-2.mp3"]'>
+      <div class="accordion-header">
+        <span>Capítulo 15: Sem Título Definido</span>
+        <button class="playlist-toggle">🎵 Playlist</button>
+      </div>
+      <div class="accordion-content">
+        <p>Este é o conteúdo do capítulo 15. O texto segue a mesma formatação do capítulo anterior e também será ajustado com o controle de fonte.</p>
+        <p>Mais um parágrafo para visualização da funcionalidade de layout e áudio.</p>
+      </div>
+    </div>  
+  </div>
+
+<div class="audio-player" id="audioPlayer">
+  <div id="audioTitle">Playlist</div>
+  <div class="player-controls">
+    <button id="prev">⏮</button>
+    <div class="play-pause-circle" id="playPauseButton">
+      <span class="icon-play">▶</span>
+      <span class="icon-pause">||</span>
+    </div>
+    <button id="next">⏭</button>
+  </div>
+</div>
+
+<audio id="audio" style="display: none;"></audio>
+
+  <script>
+    const items = document.querySelectorAll(".accordion-item");
+    const audioPlayer = document.getElementById("audioPlayer");
+    const audio = document.getElementById("audio");
+    const audioTitle = document.getElementById("audioTitle");
+    const fontRange = document.getElementById("fontRange");
+    const themeRadios = document.querySelectorAll('input[name="theme"]');
+    const body = document.body;
+    const playPauseButton = document.getElementById("playPauseButton");
+
+    let currentPlaylist = [];
+    let currentTrackIndex = 0;
+
+    // Inicializa o tema com base no rádio button checado
+    function initializeTheme() {
+      const checkedTheme = document.querySelector('input[name="theme"]:checked');
+      if (checkedTheme) {
+        body.className = ''; // Remove todas as classes existentes
+        body.classList.add(`theme-${checkedTheme.value}`);
+      }
+    }
+
+    // Chama a função de inicialização ao carregar a página
+    document.addEventListener('DOMContentLoaded', initializeTheme);
+
+    items.forEach(item => {
+      const header = item.querySelector(".accordion-header");
+      const content = item.querySelector(".accordion-content");
+      const button = item.querySelector(".playlist-toggle");
+
+      header.addEventListener("click", () => {
+        // Fecha todos os outros accordions
+        document.querySelectorAll(".accordion-content").forEach(c => c.style.display = "none");
+        document.querySelectorAll(".accordion-header").forEach(h => h.classList.remove("active"));
+
+        // Abre o accordion clicado
+        content.style.display = "block";
+        header.classList.add("active");
+
+        const tracks = JSON.parse(item.getAttribute('data-tracks'));
+        loadPlaylist(tracks);
+        audioPlayer.style.display = "flex"; // Garante que o player apareça ao clicar no header
+      });
+
+      button.addEventListener("click", (e) => {
+        e.stopPropagation(); // Impede que o clique no botão ative o header do accordion
+        // Alterna a visibilidade do player (garantindo que seja "flex" quando visível)
+        audioPlayer.style.display = (audioPlayer.style.display === "none" || audioPlayer.style.display === "") ? "flex" : "none";
+      });
+    });
+
+    function loadPlaylist(tracks) {
+      // Só carrega a playlist se for diferente da atual
+      if (JSON.stringify(tracks) !== JSON.stringify(currentPlaylist)) {
+        currentPlaylist = tracks;
+        currentTrackIndex = 0;
+        playCurrentTrack();
+      }
+    }
+
+    function playCurrentTrack() {
+      audio.src = currentPlaylist[currentTrackIndex];
+      audioTitle.textContent = `Tocando: Faixa ${currentTrackIndex + 1}`;
+      audio.play();
+      playPauseButton.classList.add('playing'); // Adiciona a classe 'playing' para mudar o ícone
+    }
+
+    // Lógica de Play/Pause para o novo círculo
+    playPauseButton.addEventListener('click', () => {
+      if (audio.paused) {
+        audio.play();
+        playPauseButton.classList.add('playing');
+      } else {
+        audio.pause();
+        playPauseButton.classList.remove('playing');
+      }
+    });
+
+    // Eventos para atualizar o estado do botão Play/Pause
+    audio.addEventListener('play', () => {
+      playPauseButton.classList.add('playing');
+    });
+
+    audio.addEventListener('pause', () => {
+      playPauseButton.classList.remove('playing');
+    });
+
+    audio.addEventListener('ended', () => {
+      if (currentTrackIndex < currentPlaylist.length - 1) {
+        currentTrackIndex++;
+        playCurrentTrack();
+      } else {
+        playPauseButton.classList.remove('playing'); // Parar de tocar quando a playlist acabar
+        audioTitle.textContent = "Playlist Concluída";
+      }
+    });
+
+    document.getElementById("next").addEventListener("click", () => {
+      if (currentTrackIndex < currentPlaylist.length - 1) {
+        currentTrackIndex++;
+        playCurrentTrack();
+      }
+    });
+
+    document.getElementById("prev").addEventListener("click", () => {
+      if (currentTrackIndex > 0) {
+        currentTrackIndex--;
+        playCurrentTrack();
+      }
+    });
+
+    // Único event listener para o range da fonte
+    fontRange.addEventListener("input", () => {
+      const val = parseFloat(fontRange.value);
+      document.querySelectorAll(".accordion-content p").forEach(p => {
+        const baseFontSize = 16;
+        const newSize = (val / 10) * baseFontSize + "px";
+        p.style.fontSize = newSize;
+      });
+    });
+
+    // Único event listener para os rádios de tema
+    themeRadios.forEach(radio => {
+      radio.addEventListener("change", (e) => {
+        const theme = e.target.value;
+        body.className = ''; // Limpa todas as classes existentes
+        body.classList.add(`theme-${theme}`); // Adiciona a nova classe de tema
+      });
+    });
+  </script>
+</body>
+</html>
