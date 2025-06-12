@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>O Café Que Serve Estrelas</title>
+  <title>História com Accordion</title>
   <style>
     body {
       margin: 0;
@@ -327,12 +327,12 @@
         <button class="playlist-toggle">🎵 Playlist</button>
       </div>
       <div class="accordion-content">
-        <img src="https://raw.githubusercontent.com/desenvolvedorwebV/Livros/refs/heads/main/Capa.png" width="100%">
+        <img src="images/Capa.png" width="100%">
       </div>
     </div>  
     
   
-    <div class="accordion-item" data-tracks='["sinopseFrancisca.mp3", "audio/cap1-2.mp3"]'>
+    <div class="accordion-item" data-tracks='["sinopseFrancisca.mp3"]'>
       <div class="accordion-header">
         <span>Sinopse</span>
         <button class="playlist-toggle">🎵 Playlist</button>
@@ -341,17 +341,14 @@
           <p>Após uma década lecionando Geografia, Celine decide abandonar o magistério ao enfrentar um episódio de assédio ocorrido na escola onde trabalhava. Ferida, mas determinada a recomeçar, retorna ao interior para morar na antiga propriedade da família. Lá, reencontra a mãe e descobre que seu primo Cadu — quase como um irmão mais novo — também está morando com sua progenitora.</p>
           <p>Nas lembranças da infância, Cadu sempre foi seu confidente e protetor, inclusive ao tentar "selecionar" pretendentes para ela. Agora, mais maduros, resta saber se esta mania continuará... e se, desta vez, apresentará alguém que realmente valha a pena.</p>
           <p>Enquanto se adapta à nova rotina e almeja resgatar sua identidade longe das dores da cidade grande, Celine se vê intrigada por um lugar do qual todos falam com carinho e mistério: o <b><i>Café Que Serve Estrelas</i></b>. Por que sua mãe e Cadu insistem tanto para que ela o conheça? E que papel esse Café pode ter no rumo de sua nova vida?</p>
-          <img src="https://raw.githubusercontent.com/desenvolvedorwebV/Livros/refs/heads/main/ilustracaoSinopse.png" width="100%">
+          <img src="images/ilustracaoSinopse.png" width="100%">
       </div>
     </div>
-<div class="accordion-item"
-    <div class="accordion-item" data-tracks='["audio/cap1-1.mp3", "audio/cap2-2.mp3"]' data-reading='["sinopseFrancisca.mp3"]'>
+
+    <div class="accordion-item" data-tracks='["audio/cap2-1.mp3", "audio/cap2-2.mp3"]'>
       <div class="accordion-header">
         <span>Prólogo</span>
-        <div class="button-group">
-            <button class="live-reading-toggle">📖 Leitura ao Vivo</button>
-            <button class="playlist-toggle">🎵 Playlist</button>
-        </div>
+        <button class="playlist-toggle">🎵 Playlist</button>
       </div>
       <div class="accordion-content">
         <p>— Tem certeza? Vai abrir mão de tudo o que você conquistou até agora? — questionou Romero, diretor da Escola Publis, encarando sua melhor profissional em busca de respostas. A abordagem, no entanto, foi dura demais — injusta na realidade.</p>
@@ -589,15 +586,7 @@
       const header = item.querySelector(".accordion-header");
       const content = item.querySelector(".accordion-content");
       const button = item.querySelector(".playlist-toggle");
-const liveReadingButton = item.querySelector(".live-reading-toggle");
 
-liveReadingButton.addEventListener("click", (e) => {
-  e.stopPropagation(); // Impede o accordion de abrir
-  const readingTracks = JSON.parse(item.getAttribute('data-reading'));
-  loadPlaylist(readingTracks, "Leitura ao Vivo");
-  audioPlayer.style.display = "flex";
-});
-      
       header.addEventListener("click", () => {
         // Fecha todos os outros accordions
         document.querySelectorAll(".accordion-content").forEach(c => c.style.display = "none");
@@ -619,20 +608,21 @@ liveReadingButton.addEventListener("click", (e) => {
       });
     });
 
-    function loadPlaylist(tracks, title = "Playlist") {
-  if (JSON.stringify(tracks) !== JSON.stringify(currentPlaylist)) {
-    currentPlaylist = tracks;
-    currentTrackIndex = 0;
-    playCurrentTrack(title);
-  }
-}
+    function loadPlaylist(tracks) {
+      // Só carrega a playlist se for diferente da atual
+      if (JSON.stringify(tracks) !== JSON.stringify(currentPlaylist)) {
+        currentPlaylist = tracks;
+        currentTrackIndex = 0;
+        playCurrentTrack();
+      }
+    }
 
-    function playCurrentTrack(title = "Playlist") {
-  audio.src = currentPlaylist[currentTrackIndex];
-  audioTitle.textContent = `${title} - Faixa ${currentTrackIndex + 1}`;
-  audio.play();
-  playPauseButton.classList.add('playing');
-}
+    function playCurrentTrack() {
+      audio.src = currentPlaylist[currentTrackIndex];
+      audioTitle.textContent = `Tocando: Faixa ${currentTrackIndex + 1}`;
+      audio.play();
+      playPauseButton.classList.add('playing'); // Adiciona a classe 'playing' para mudar o ícone
+    }
 
     // Lógica de Play/Pause para o novo círculo
     playPauseButton.addEventListener('click', () => {
