@@ -344,11 +344,14 @@
           <img src="https://raw.githubusercontent.com/desenvolvedorwebV/Livros/refs/heads/main/ilustracaoSinopse.png" width="100%">
       </div>
     </div>
-
-    <div class="accordion-item" data-tracks='["sinopseFrancisca.mp3", "audio/cap2-2.mp3"]'>
+<div class="accordion-item"
+    <div class="accordion-item" data-tracks='["audio/cap1-1.mp3", "audio/cap2-2.mp3"]' data-reading='["sinopseFrancisca.mp3"]'>
       <div class="accordion-header">
         <span>Prólogo</span>
-        <button class="playlist-toggle">🎵 Playlist</button>
+        <div class="button-group">
+            <button class="live-reading-toggle">📖 Leitura ao Vivo</button>
+            <button class="playlist-toggle">🎵 Playlist</button>
+        </div>
       </div>
       <div class="accordion-content">
         <p>— Tem certeza? Vai abrir mão de tudo o que você conquistou até agora? — questionou Romero, diretor da Escola Publis, encarando sua melhor profissional em busca de respostas. A abordagem, no entanto, foi dura demais — injusta na realidade.</p>
@@ -586,7 +589,15 @@
       const header = item.querySelector(".accordion-header");
       const content = item.querySelector(".accordion-content");
       const button = item.querySelector(".playlist-toggle");
+const liveReadingButton = item.querySelector(".live-reading-toggle");
 
+liveReadingButton.addEventListener("click", (e) => {
+  e.stopPropagation(); // Impede o accordion de abrir
+  const readingTracks = JSON.parse(item.getAttribute('data-reading'));
+  loadPlaylist(readingTracks, "Leitura ao Vivo");
+  audioPlayer.style.display = "flex";
+});
+      
       header.addEventListener("click", () => {
         // Fecha todos os outros accordions
         document.querySelectorAll(".accordion-content").forEach(c => c.style.display = "none");
@@ -608,21 +619,20 @@
       });
     });
 
-    function loadPlaylist(tracks) {
-      // Só carrega a playlist se for diferente da atual
-      if (JSON.stringify(tracks) !== JSON.stringify(currentPlaylist)) {
-        currentPlaylist = tracks;
-        currentTrackIndex = 0;
-        playCurrentTrack();
-      }
-    }
+    function loadPlaylist(tracks, title = "Playlist") {
+  if (JSON.stringify(tracks) !== JSON.stringify(currentPlaylist)) {
+    currentPlaylist = tracks;
+    currentTrackIndex = 0;
+    playCurrentTrack(title);
+  }
+}
 
-    function playCurrentTrack() {
-      audio.src = currentPlaylist[currentTrackIndex];
-      audioTitle.textContent = `Tocando: Faixa ${currentTrackIndex + 1}`;
-      audio.play();
-      playPauseButton.classList.add('playing'); // Adiciona a classe 'playing' para mudar o ícone
-    }
+    function playCurrentTrack(title = "Playlist") {
+  audio.src = currentPlaylist[currentTrackIndex];
+  audioTitle.textContent = `${title} - Faixa ${currentTrackIndex + 1}`;
+  audio.play();
+  playPauseButton.classList.add('playing');
+}
 
     // Lógica de Play/Pause para o novo círculo
     playPauseButton.addEventListener('click', () => {
